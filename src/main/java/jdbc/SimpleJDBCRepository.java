@@ -15,6 +15,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SimpleJDBCRepository {
+    public static void main(String[] args) {
+//        User user = new User(null, "John", "Doe", 25);
+        SimpleJDBCRepository repo = new SimpleJDBCRepository();
+//        repo.createUser(user);
+        System.out.println(repo.findUserById(1L));
+    }
 
     private Connection connection;
 
@@ -59,16 +65,14 @@ public class SimpleJDBCRepository {
 
     public User findUserById(Long userId) {
         User user = new User();
-        try {
-            ps = connection.prepareStatement(findUserByIdSQL);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
+        try (
+            Connection connection = CustomDataSource.getInstance().getConnection();
+            PreparedStatement ps = connection.prepareStatement(findUserByIdSQL);
+        ) {
             ps.setLong(1, userId);
 
             ResultSet rs = ps.executeQuery();
+
             rs.next();
             user.setId(rs.getLong("id"));
             user.setFirstName(rs.getString("firstname"));

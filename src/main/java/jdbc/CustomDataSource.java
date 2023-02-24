@@ -33,7 +33,8 @@ public class CustomDataSource implements DataSource {
 
     public static CustomDataSource getInstance() {
         Properties properties = new Properties();
-        try (InputStream is = CustomDataSource.class.getClassLoader().getResourceAsStream("application.properties")) {
+        try (InputStream is = CustomDataSource.class.getClassLoader().getResourceAsStream("app.properties")) {
+            properties.load(is);
             instance = new CustomDataSource(
                     properties.getProperty("postgres.driver"),
                     properties.getProperty("postgres.url"),
