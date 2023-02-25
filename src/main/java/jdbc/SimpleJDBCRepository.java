@@ -19,7 +19,7 @@ public class SimpleJDBCRepository {
 //        User user = new User(null, "John", "Doe", 25);
         SimpleJDBCRepository repo = new SimpleJDBCRepository();
 //        repo.createUser(user);
-        System.out.println(repo.findUserById(1L));
+        System.out.println(repo.findUserById(1L).getFirstName());
     }
 
     private Connection connection;
