@@ -1,0 +1,5 @@
+jdbc/CustomDataSource.class
+jdbc/SimpleJDBCRepository.class
+jdbc/CustomConnector.class
+jdbc/User.class
+jdbc/User$UserBuilder.class
