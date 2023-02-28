@@ -16,14 +16,14 @@ import java.util.List;
 @NoArgsConstructor
 public class SimpleJDBCRepository {
     public static void main(String[] args) {
-        User user = new User(8L, "Jane", "Doe", 25);
+        User user = new User(null, "John", "Doe", 25);
         SimpleJDBCRepository repo = new SimpleJDBCRepository();
-//        repo.createUser(user);
-        System.out.println(repo.findUserById(1L).getFirstName());
-        System.out.println(repo.findUserByName("Jane").getLastName());
-        System.out.println(repo.findAllUser().size());
-        System.out.println(repo.updateUser(user));
-        repo.deleteUser(2L);
+        repo.createUser(user);
+//        System.out.println(repo.findUserById(1L).getFirstName());
+//        System.out.println(repo.findUserByName("Jane").getLastName());
+//        System.out.println(repo.findAllUser().size());
+//        System.out.println(repo.updateUser(user));
+//        repo.deleteUser(2L);
     }
 
     private Connection connection;
@@ -48,13 +48,9 @@ public class SimpleJDBCRepository {
 
     public Long createUser(User user) {
         Long id = null;
-        try {
-            ps = connection.prepareStatement(CREATE_USER_SQL);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
+        try (
+            PreparedStatement ps = connection.prepareStatement(CREATE_USER_SQL);
+        ) {
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
             ps.setInt(3, user.getAge());
