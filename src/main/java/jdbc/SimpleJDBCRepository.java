@@ -39,17 +39,17 @@ public class SimpleJDBCRepository {
     private PreparedStatement ps = null;
     private Statement st = null;
 
-    private static final String createUserSQL = "INSERT INTO myusers(firstname, lastname, age) VALUES (?,?,?)";
-    private static final String updateUserSQL = "UPDATE myusers SET firstname=?, lastname=?, age=? WHERE id=?";
-    private static final String deleteUser = "DELETE FROM myusers WHERE id=?";
-    private static final String findUserByIdSQL = "SELECT * FROM myusers WHERE id=?";
-    private static final String findUserByNameSQL = "SELECT * FROM myusers WHERE firstname=?";
-    private static final String findAllUserSQL = "SELECT * FROM myusers";
+    private static final String CREATE_USER_SQL = "INSERT INTO myusers(firstname, lastname, age) VALUES (?,?,?)";
+    private static final String UPDATE_USER_SQL = "UPDATE myusers SET firstname=?, lastname=?, age=? WHERE id=?";
+    private static final String DELETE_USER = "DELETE FROM myusers WHERE id=?";
+    private static final String FIND_USER_BY_ID_SQL = "SELECT * FROM myusers WHERE id=?";
+    private static final String FIND_USER_BY_NAME_SQL = "SELECT * FROM myusers WHERE firstname=?";
+    private static final String FIND_ALL_USER_SQL = "SELECT * FROM myusers";
 
     public Long createUser(User user) {
         Long id = null;
         try {
-            ps = connection.prepareStatement(createUserSQL);
+            ps = connection.prepareStatement(CREATE_USER_SQL);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -70,7 +70,7 @@ public class SimpleJDBCRepository {
     public User findUserById(Long userId) {
         User user = new User();
         try (
-            PreparedStatement ps = connection.prepareStatement(findUserByIdSQL);
+                PreparedStatement ps = connection.prepareStatement(FIND_USER_BY_ID_SQL);
         ) {
             ps.setLong(1, userId);
 
@@ -91,12 +91,14 @@ public class SimpleJDBCRepository {
     public User findUserByName(String userName) {
         User user = new User();
         try (
-            PreparedStatement ps = connection.prepareStatement(findUserByNameSQL);
+                PreparedStatement ps = connection.prepareStatement(FIND_USER_BY_NAME_SQL);
         ) {
             ps.setString(1, userName);
 
             ResultSet rs = ps.executeQuery();
-            rs.next();
+            if (!rs.next()) {
+                throw new SQLException("no user with this name");
+            }
             user.setId(rs.getLong("id"));
             user.setFirstName(rs.getString("firstname"));
             user.setLastName((rs.getString("lastname")));
@@ -110,13 +112,13 @@ public class SimpleJDBCRepository {
 
     public List<User> findAllUser() {
         List<User> users = new ArrayList<>();
-        User user = new User();
 
         try (
-            PreparedStatement ps = connection.prepareStatement(findAllUserSQL);
+                Statement st = connection.createStatement()
         ) {
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = st.executeQuery(FIND_ALL_USER_SQL);
             while (rs.next()) {
+                User user = new User();
                 user.setId(rs.getLong("id"));
                 user.setFirstName(rs.getString("firstname"));
                 user.setLastName((rs.getString("lastname")));
@@ -132,14 +134,16 @@ public class SimpleJDBCRepository {
 
     public User updateUser(User user) {
         try (
-            PreparedStatement ps = connection.prepareStatement(updateUserSQL);
+                PreparedStatement ps = connection.prepareStatement(UPDATE_USER_SQL);
         ) {
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
             ps.setInt(3, user.getAge());
             ps.setLong(4, user.getId());
 
-            ps.executeUpdate();
+            if (ps.executeUpdate() == 0) {
+                throw new SQLException("no user");
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -149,11 +153,13 @@ public class SimpleJDBCRepository {
 
     public void deleteUser(Long userId) {
         try (
-            PreparedStatement ps = connection.prepareStatement(deleteUser);
+                PreparedStatement ps = connection.prepareStatement(DELETE_USER);
         ) {
             ps.setLong(1, userId);
 
-            ps.executeUpdate();
+            if (ps.executeUpdate() == 0) {
+                throw new SQLException("no user with this id");
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
